@@ -1,2 +1,36 @@
-# PXB-Market-
- سوق مجتمعي لاكتشاف الفرص الرقمية والتعليم في عالم الكريبتو
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>PXB Market</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <script>Pi.init({ version: "2.0", sandbox: false });</script>
+</head>
+<body style="text-align: center; font-family: sans-serif; padding-top: 50px; background-color: #f3f4f6;">
+    <h1 style="color: #6d28d9;">مرحباً بك في PXB Market 🚀</h1>
+    <p style="font-size: 18px;">اضغط على الزر أدناه لإتمام عملية الدفع وتفعيل التطبيق.</p>
+    
+    <button id="pay-button" style="padding: 15px 40px; background-color: #6d28d9; color: white; border: none; border-radius: 10px; font-size: 20px; cursor: pointer;">
+        دفع 0.1 Pi للتفعيل
+    </button>
+
+    <script>
+        document.getElementById('pay-button').onclick = async function() {
+            try {
+                const payment = await Pi.createPayment({
+                    amount: 0.1,
+                    memo: "تفعيل المتجر التجريبي",
+                    metadata: { orderId: 123 }
+                }, {
+                    onReadyForServerApproval: (id) => { console.log("تمت الموافقة"); },
+                    onReadyForServerCompletion: (id, txid) => { alert("نجح الدفع! عد للوحة التحكم"); },
+                    onCancel: (id) => { alert("تم الإلغاء"); },
+                    onError: (err) => { alert("خطأ: " + err.message); }
+                });
+            } catch (err) {
+                alert("يرجى فتح الموقع من داخل Pi Browser");
+            }
+        };
+    </script>
+</body>
+</html>
