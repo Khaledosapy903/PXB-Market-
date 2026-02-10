@@ -2,35 +2,37 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PXB Market</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <script>Pi.init({ version: "2.0", sandbox: false });</script>
-</head>
-<body style="text-align: center; font-family: sans-serif; padding-top: 50px; background-color: #f3f4f6;">
-    <h1 style="color: #6d28d9;">مرحباً بك في PXB Market 🚀</h1>
-    <p style="font-size: 18px;">اضغط على الزر أدناه لإتمام عملية الدفع وتفعيل التطبيق.</p>
-    
-    <button id="pay-button" style="padding: 15px 40px; background-color: #6d28d9; color: white; border: none; border-radius: 10px; font-size: 20px; cursor: pointer;">
-        دفع 0.1 Pi للتفعيل
-    </button>
-
     <script>
-        document.getElementById('pay-button').onclick = async function() {
+        Pi.init({ version: "2.0", sandbox: false });
+        
+        async function makePayment() {
             try {
                 const payment = await Pi.createPayment({
                     amount: 0.1,
-                    memo: "تفعيل المتجر التجريبي",
-                    metadata: { orderId: 123 }
+                    memo: "تفعيل الخطوة 10 - PXB Market",
+                    metadata: { step: 10 }
                 }, {
-                    onReadyForServerApproval: (id) => { console.log("تمت الموافقة"); },
-                    onReadyForServerCompletion: (id, txid) => { alert("نجح الدفع! عد للوحة التحكم"); },
-                    onCancel: (id) => { alert("تم الإلغاء"); },
-                    onError: (err) => { alert("خطأ: " + err.message); }
+                    onReadyForServerApproval: (paymentId) => { console.log(paymentId); },
+                    onReadyForServerCompletion: (paymentId, txid) => { alert("تم الدفع بنجاح!"); },
+                    onCancel: (paymentId) => { alert("تم إلغاء العملية"); },
+                    onError: (error) => { alert("خطأ: " + error.message); }
                 });
             } catch (err) {
-                alert("يرجى فتح الموقع من داخل Pi Browser");
+                alert("يرجى فتح الرابط من داخل متصفح Pi Browser فقط");
             }
-        };
+        }
     </script>
+</head>
+<body style="text-align: center; font-family: sans-serif; background-color: #f4f4f4; padding-top: 50px;">
+    <div style="background: white; padding: 30px; border-radius: 15px; display: inline-block; border: 2px solid #673ab7;">
+        <h1 style="color: #673ab7;">سوق PXB</h1>
+        <p>اضغط على الزر أدناه لإتمام الخطوة رقم 10</p>
+        <button onclick="makePayment()" style="background-color: #673ab7; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 10px; cursor: pointer;">
+            دفع 0.1 باي للتفعيل
+        </button>
+    </div>
 </body>
- </html> 
+</html>
