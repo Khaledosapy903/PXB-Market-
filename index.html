@@ -3,36 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PXB Market</title>
+    <title>سوق PXB</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f4; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; border: 2px solid #673ab7; width: 300px; }
+        h1 { color: #673ab7; }
+        p { color: #333; margin-bottom: 20px; }
+        button { background-color: #673ab7; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #512da8; }
+        #status { margin-top: 15px; font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>سوق PXB</h1>
+        <p>اضغط على الزر أدناه لإتمام الخطوة رقم 10</p>
+        <button id="pay-button">دفع 0.1 باي للتفعيل</button>
+        <div id="status">جاري تهيئة النظام...</div>
+    </div>
+
     <script>
+        // 2. تهيئة Pi SDK
+        const Pi = window.Pi;
         Pi.init({ version: "2.0", sandbox: false });
-        
-        async function makePayment() {
+
+        const statusDiv = document.getElementById('status');
+        const payButton = document.getElementById('pay-button');
+
+        // تسجيل الدخول التلقائي
+        async function auth() {
             try {
-                const payment = await Pi.createPayment({
-                    amount: 0.1,
-                    memo: "تفعيل الخطوة 10 - PXB Market",
-                    metadata: { step: 10 }
-                }, {
-                    onReadyForServerApproval: (paymentId) => { console.log(paymentId); },
-                    onReadyForServerCompletion: (paymentId, txid) => { alert("تم الدفع بنجاح!"); },
-                    onCancel: (paymentId) => { alert("تم إلغاء العملية"); },
-                    onError: (error) => { alert("خطأ: " + error.message); }
-                });
+                const scopes = ['payments'];
+                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                statusDiv.innerText = "متصل بحساب: " + auth.user.username;
             } catch (err) {
-                alert("يرجى فتح الرابط من داخل متصفح Pi Browser فقط");
+                statusDiv.innerText = "يرجى فتح الرابط من داخل متصفح Pi فقط";
+                console.error(err);
             }
         }
+
+        // 3. وظيفة الدفع (Payment)
+        payButton.onclick = async () => {
+            try {
+                statusDiv.innerText = "جاري إنشاء المعاملة...";
+                const payment = await Pi.createPayment({
+                    amount: 0.1,
+                    memo: "تفعيل تطبيق PXB Market - الخطوة 10",
+                    metadata: { app_step: 10 },
+                }, {
+                    onReadyForServerApproval: (paymentId) => {
+                        statusDiv.innerText = "بانتظار موافقة الخادم...";
+                        // هنا يتم إرسال المعاملة لخادمك (إذا كان لديك خادم)
+                    },
+                    onReadyForServerCompletion: (paymentId, txid) => {
+                        statusDiv.innerText = "جاري إتمام المعاملة...";
+                    },
+                    onCancel: (paymentId) => { statusDiv.innerText = "تم إلغاء العملية"; },
+                    onError: (error, paymentId) => { statusDiv.innerText = "خطأ في الدفع"; },
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        function onIncompletePaymentFound(payment) { /* للتعامل مع المدفوعات غير المكتملة */ }
+
+        auth();
     </script>
-</head>
-<body style="text-align: center; font-family: sans-serif; background-color: #f4f4f4; padding-top: 50px;">
-    <div style="background: white; padding: 30px; border-radius: 15px; display: inline-block; border: 2px solid #673ab7;">
-        <h1 style="color: #673ab7;">سوق PXB</h1>
-        <p>اضغط على الزر أدناه لإتمام الخطوة رقم 10</p>
-        <button onclick="makePayment()" style="background-color: #673ab7; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 10px; cursor: pointer;">
-            دفع 0.1 باي للتفعيل
-        </button>
-    </div>
 </body>
 </html>
+
