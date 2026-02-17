@@ -46,9 +46,26 @@
                     memo: "تفعيل الخطوة 10",
                     metadata: { step: 10 },
                 }, {
-                    onReadyForServerApproval: (id) => {
-                        statusDiv.innerText = "⚙️ بانتظار الموافقة...";
-                    },
+                    onReadyForServerApproval: async (paymentId) => {
+    statusDiv.innerText = "⚙️ جاري الموافقة من الخادم...";
+    
+    // إرسال طلب للملف الجديد الذي أنشأناه في مجلد api
+    try {
+        await fetch('/api/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paymentId })
+        });
+        
+        // إخبار نظام Pi بأن الخادم وافق داخلياً
+        return Pi.createPayment.approve(paymentId);
+    } catch (e) {
+        statusDiv.innerText = "❌ فشل الاتصال بالخادم";
+    }
+},
+
+                
+            
                     onReadyForServerCompletion: (id, txid) => {
                         statusDiv.innerText = "🎉 تم الدفع بنجاح!";
                         alert("اكتملت العملية!");
