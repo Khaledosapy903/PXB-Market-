@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -8,82 +7,57 @@
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f4; }
-        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; border: 2px solid #673ab7; width: 320px; }
-        h1 { color: #673ab7; margin-bottom: 10px; }
-        p { color: #333; font-size: 14px; margin-bottom: 20px; }
-        button { background-color: #673ab7; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; width: 100%; font-weight: bold; }
-        button:hover { background-color: #512da8; }
-        #status { margin-top: 20px; font-size: 14px; color: #666; font-weight: bold; padding: 10px; border-radius: 5px; background: #eee; min-height: 40px; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        h1 { color: #673ab7; }
+        button { background-color: #673ab7; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 18px; cursor: pointer; width: 100%; font-weight: bold; }
+        #status { margin-top: 15px; font-size: 14px; color: #555; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h1>سوق PXB 🛒</h1>
-        <p>الخطوة 10: إجراء الدفع التجريبي لتفعيل التطبيق</p>
-        <button id="pay-button">دفع 0.1 Pi للتفعيل</button>
-        <div id="status">جاري فحص الاتصال بالشبكة... ⏳</div>
+        <p>اضغط للبدء في عملية الدفع</p>
+        <button id="pay-button">دفع 0.1 Pi الآن</button>
+        <div id="status">جاهز للبدء ✅</div>
     </div>
 
     <script>
         const Pi = window.Pi;
-        // تهيئة التطبيق - سنستخدم sandbox: true للتجربة الأولية لإتمام الخطوة 10
         Pi.init({ version: "2.0", sandbox: true });
 
         const statusDiv = document.getElementById('status');
-        const payButton = document.getElementById('pay-button');
-
-        // دالة التحقق من الهوية (Authentication)
-        async function auth() {
+        
+        document.getElementById('pay-button').onclick = async () => {
             try {
+                statusDiv.innerText = "⏳ جاري التحقق والاتصال...";
+                
+                // طلب تسجيل الدخول والدفع في خطوة واحدة عند الضغط
                 const scopes = ['payments'];
-                // محاولة الاتصال بمتصفح Pi
-                const authResponse = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                statusDiv.innerText = "✅ متصل: " + authResponse.user.username;
-                statusDiv.style.color = "green";
-                statusDiv.style.backgroundColor = "#e8f5e9";
-            } catch (err) {
-                // عرض رسالة الخطأ لتحديد سبب المشكلة
-                statusDiv.innerText = "❌ خطأ في الاتصال: " + err.message;
-                statusDiv.style.color = "#d32f2f";
-                statusDiv.style.backgroundColor = "#ffebee";
-                console.error("Authentication Error:", err);
-            }
-        }
-
-        // دالة إنشاء المعاملة
-        payButton.onclick = async () => {
-            try {
-                statusDiv.innerText = "🔄 جاري إنشاء المعاملة...";
-                const payment = await Pi.createPayment({
+                await Pi.authenticate(scopes, (payment) => {});
+                
+                statusDiv.innerText = "💸 جاري تجهيز فاتورة الدفع...";
+                
+                await Pi.createPayment({
                     amount: 0.1,
-                    memo: "تفعيل الخطوة 10 - PXB Market",
+                    memo: "تفعيل تطبيق PXB",
                     metadata: { step: 10 },
                 }, {
-                    onReadyForServerApproval: (paymentId) => {
-                        statusDiv.innerText = "⚙️ بانتظار موافقة Sandbox...";
+                    onReadyForServerApproval: (id) => statusDiv.innerText = "⚙️ بانتظار الموافقة...",
+                    onReadyForServerCompletion: (id, txid) => {
+                        statusDiv.innerText = "✅ تم الدفع بنجاح!";
+                        alert("مبروك! اكتمل الدفع.");
                     },
-                    onReadyForServerCompletion: (paymentId, txid) => {
-                        statusDiv.innerText = "🎉 تم الدفع بنجاح!";
-                        alert("نجحت العملية! يمكنك الآن العودة لصفحة Develop لتأكيد الخطوة 10.");
-                    },
-                    onCancel: (pId) => { statusDiv.innerText = "⚠️ تم إلغاء الدفع"; },
-                    onError: (err, pId) => { statusDiv.innerText = "❌ خطأ في الدفع: " + err.message; },
+                    onCancel: () => statusDiv.innerText = "❌ تم إلغاء العملية",
+                    onError: (err) => statusDiv.innerText = "❌ خطأ: " + err.message,
                 });
             } catch (err) {
-                statusDiv.innerText = "❌ فشل بدء المعاملة";
-                console.error("Payment Error:", err);
+                statusDiv.innerText = "❌ فشل الاتصال: " + err.message;
             }
         };
-
-        function onIncompletePaymentFound(payment) {
-            console.log("Incomplete payment found:", payment);
-        }
-
-        // تشغيل عملية الاتصال فور تحميل الصفحة
-        auth();
     </script>
 </body>
 </html>
+
 
 
