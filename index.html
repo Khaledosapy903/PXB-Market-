@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -12,7 +13,7 @@
         p { color: #333; font-size: 14px; margin-bottom: 20px; }
         button { background-color: #673ab7; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; width: 100%; font-weight: bold; }
         button:hover { background-color: #512da8; }
-        #status { margin-top: 20px; font-size: 14px; color: #666; font-weight: bold; padding: 10px; border-radius: 5px; background: #eee; }
+        #status { margin-top: 20px; font-size: 14px; color: #666; font-weight: bold; padding: 10px; border-radius: 5px; background: #eee; min-height: 40px; }
     </style>
 </head>
 <body>
@@ -26,7 +27,7 @@
 
     <script>
         const Pi = window.Pi;
-        // تهيئة التطبيق - سنستخدم sandbox: true للتجربة الأولية
+        // تهيئة التطبيق - سنستخدم sandbox: true للتجربة الأولية لإتمام الخطوة 10
         Pi.init({ version: "2.0", sandbox: true });
 
         const statusDiv = document.getElementById('status');
@@ -36,20 +37,21 @@
         async function auth() {
             try {
                 const scopes = ['payments'];
-                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                statusDiv.innerText = "✅ متصل: " + auth.user.username;
+                // محاولة الاتصال بمتصفح Pi
+                const authResponse = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                statusDiv.innerText = "✅ متصل: " + authResponse.user.username;
                 statusDiv.style.color = "green";
                 statusDiv.style.backgroundColor = "#e8f5e9";
             } catch (err) {
-                // إذا فشل الاتصال، سنعرض السبب بوضوح
+                // عرض رسالة الخطأ لتحديد سبب المشكلة
                 statusDiv.innerText = "❌ خطأ في الاتصال: " + err.message;
                 statusDiv.style.color = "#d32f2f";
                 statusDiv.style.backgroundColor = "#ffebee";
-                console.error(err);
+                console.error("Authentication Error:", err);
             }
         }
 
-        // دالة إنشاء المعاملة عند الضغط على الزر
+        // دالة إنشاء المعاملة
         payButton.onclick = async () => {
             try {
                 statusDiv.innerText = "🔄 جاري إنشاء المعاملة...";
@@ -59,31 +61,29 @@
                     metadata: { step: 10 },
                 }, {
                     onReadyForServerApproval: (paymentId) => {
-                        statusDiv.innerText = "⚙️ بانتظار موافقة الخادم (Sandbox)...";
+                        statusDiv.innerText = "⚙️ بانتظار موافقة Sandbox...";
                     },
                     onReadyForServerCompletion: (paymentId, txid) => {
                         statusDiv.innerText = "🎉 تم الدفع بنجاح!";
                         alert("نجحت العملية! يمكنك الآن العودة لصفحة Develop لتأكيد الخطوة 10.");
                     },
-                    onCancel: (pId) => { statusDiv.innerText = "⚠️ تم إلغاء الدفع من قبلك"; },
+                    onCancel: (pId) => { statusDiv.innerText = "⚠️ تم إلغاء الدفع"; },
                     onError: (err, pId) => { statusDiv.innerText = "❌ خطأ في الدفع: " + err.message; },
                 });
             } catch (err) {
                 statusDiv.innerText = "❌ فشل بدء المعاملة";
-                console.error(err);
+                console.error("Payment Error:", err);
             }
         };
 
-        // التعامل مع المدفوعات غير المكتملة
         function onIncompletePaymentFound(payment) {
-            console.log("وجدنا معاملة معلقة:", payment);
+            console.log("Incomplete payment found:", payment);
         }
 
-        // تشغيل التحقق فور تحميل الصفحة
+        // تشغيل عملية الاتصال فور تحميل الصفحة
         auth();
     </script>
 </body>
 </html>
-
 
 
