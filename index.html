@@ -7,69 +7,83 @@
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f4; }
-        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; border: 2px solid #673ab7; width: 300px; }
-        h1 { color: #673ab7; }
-        button { background-color: #673ab7; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; width: 100%; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; border: 2px solid #673ab7; width: 320px; }
+        h1 { color: #673ab7; margin-bottom: 10px; }
+        p { color: #333; font-size: 14px; margin-bottom: 20px; }
+        button { background-color: #673ab7; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; width: 100%; font-weight: bold; }
         button:hover { background-color: #512da8; }
-        #status { margin-top: 15px; font-size: 14px; color: #666; font-weight: bold; }
+        #status { margin-top: 20px; font-size: 14px; color: #666; font-weight: bold; padding: 10px; border-radius: 5px; background: #eee; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h1>سوق PXB</h1>
-        <p>الخطوة 10: دفع تجريبي</p>
-        <button id="pay-button">دفع 0.1 باي للتفعيل</button>
-        <div id="status">جاري الاتصال بالشبكة...</div>
+        <h1>سوق PXB 🛒</h1>
+        <p>الخطوة 10: إجراء الدفع التجريبي لتفعيل التطبيق</p>
+        <button id="pay-button">دفع 0.1 Pi للتفعيل</button>
+        <div id="status">جاري فحص الاتصال بالشبكة... ⏳</div>
     </div>
 
     <script>
         const Pi = window.Pi;
-        // تفعيل وضع Sandbox للموافقة التلقائية
+        // تهيئة التطبيق - سنستخدم sandbox: true للتجربة الأولية
         Pi.init({ version: "2.0", sandbox: true });
 
         const statusDiv = document.getElementById('status');
         const payButton = document.getElementById('pay-button');
 
+        // دالة التحقق من الهوية (Authentication)
         async function auth() {
             try {
                 const scopes = ['payments'];
                 const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                statusDiv.innerText = "متصل: " + auth.user.username;
+                statusDiv.innerText = "✅ متصل: " + auth.user.username;
                 statusDiv.style.color = "green";
+                statusDiv.style.backgroundColor = "#e8f5e9";
             } catch (err) {
-                statusDiv.innerText = "افتح التطبيق من Pi Browser";
-                statusDiv.style.color = "red";
+                // إذا فشل الاتصال، سنعرض السبب بوضوح
+                statusDiv.innerText = "❌ خطأ في الاتصال: " + err.message;
+                statusDiv.style.color = "#d32f2f";
+                statusDiv.style.backgroundColor = "#ffebee";
+                console.error(err);
             }
         }
 
+        // دالة إنشاء المعاملة عند الضغط على الزر
         payButton.onclick = async () => {
             try {
-                statusDiv.innerText = "جاري إنشاء المعاملة...";
+                statusDiv.innerText = "🔄 جاري إنشاء المعاملة...";
                 const payment = await Pi.createPayment({
                     amount: 0.1,
                     memo: "تفعيل الخطوة 10 - PXB Market",
                     metadata: { step: 10 },
                 }, {
                     onReadyForServerApproval: (paymentId) => {
-                        statusDiv.innerText = "تمت الموافقة التلقائية (Sandbox)";
+                        statusDiv.innerText = "⚙️ بانتظار موافقة الخادم (Sandbox)...";
                     },
                     onReadyForServerCompletion: (paymentId, txid) => {
-                        statusDiv.innerText = "تم الدفع بنجاح! راجع قائمة المهام.";
+                        statusDiv.innerText = "🎉 تم الدفع بنجاح!";
                         alert("نجحت العملية! يمكنك الآن العودة لصفحة Develop لتأكيد الخطوة 10.");
                     },
-                    onCancel: (pId) => { statusDiv.innerText = "تم إلغاء الدفع"; },
-                    onError: (err, pId) => { statusDiv.innerText = "خطأ: " + err.message; },
+                    onCancel: (pId) => { statusDiv.innerText = "⚠️ تم إلغاء الدفع من قبلك"; },
+                    onError: (err, pId) => { statusDiv.innerText = "❌ خطأ في الدفع: " + err.message; },
                 });
             } catch (err) {
+                statusDiv.innerText = "❌ فشل بدء المعاملة";
                 console.error(err);
             }
         };
 
-        function onIncompletePaymentFound(payment) { }
+        // التعامل مع المدفوعات غير المكتملة
+        function onIncompletePaymentFound(payment) {
+            console.log("وجدنا معاملة معلقة:", payment);
+        }
+
+        // تشغيل التحقق فور تحميل الصفحة
         auth();
     </script>
 </body>
 </html>
+
 
 
