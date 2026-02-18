@@ -8,13 +8,11 @@
     <style>
         body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f4; }
         .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 320px; }
-        h1 { color: #673ab7; }
         button { background-color: #673ab7; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 18px; cursor: pointer; width: 100%; font-weight: bold; }
-        #status { margin-top: 15px; font-size: 14px; color: #555; padding: 10px; border-radius: 5px; min-height: 20px; }
+        #status { margin-top: 15px; font-size: 14px; color: #555; }
     </style>
 </head>
 <body>
-
     <div class="card">
         <h1>🛒 سوق PXB</h1>
         <p>اضغط لتفعيل الدفع التجريبي</p>
@@ -32,8 +30,7 @@
             try {
                 statusDiv.innerText = "⏳ جاري الاتصال بالمحفظة...";
                 
-                const scopes = ['payments'];
-                await Pi.authenticate(scopes, (payment) => {
+                await Pi.authenticate(['payments'], (payment) => {
                     console.log("Incomplete payment:", payment);
                 });
 
@@ -52,20 +49,15 @@
                             });
                             return Pi.createPayment.approve(paymentId);
                         } catch (e) {
-                            statusDiv.innerText = "❌ فشل الاتصال بخادم الموافقة";
+                            statusDiv.innerText = "❌ فشل اتصال الخادم";
                         }
                     },
                     onReadyForServerCompletion: (paymentId, txid) => {
                         statusDiv.innerText = "🎉 تم الدفع بنجاح!";
-                        alert("اكتملت العملية بنجاح!");
                     },
-                    onCancel: () => {
-                        statusDiv.innerText = "⚠️ تم إلغاء العملية";
-                    },
-                    onError: (err) => {
-                        statusDiv.innerText = "❌ خطأ: " + err.message;
-                    },
-                });
+                    onCancel: () => { statusDiv.innerText = "⚠️ تم الإلغاء"; },
+                    onError: (err) => { statusDiv.innerText = "❌ خطأ: " + err.message; },
+                                });
             } catch (err) {
                 statusDiv.innerText = "❌ فشل: " + err.message;
             }
@@ -73,6 +65,11 @@
     </script>
 </body>
 </html>
+
+        
+            
+    
+
 
 
 
