@@ -50,7 +50,7 @@
                         statusDiv.innerText = "⚙️ جاري الموافقة من الخادم...";
                         try {
                             // الاتصال بالخادم الخاص بك
-                            const response = await fetch('/api/approve', {
+                            const response = await fetch('/api/handler', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ paymentId })
@@ -64,7 +64,7 @@
                     },
                     onReadyForServerCompletion: async (paymentId, txid) => {
                         statusDiv.innerText = "⏳ جاري إتمام المعاملة...";
-                        await fetch('/api/complete', {
+                        await fetch('/api/handler', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ paymentId, txid })
